@@ -1,12 +1,11 @@
 import { WebComponent } from "../core/WebComponent"
 import { Scope } from "../core/Scope"
 import { Compose } from "../core/Compose"
-import { uuid } from "../util/uuid"
 // import {MDCRipple} from '@material/ripple';
 
 
 class ButtonComposable {
-    constructor({ modifier, onClick, content }, parentScope, id) {
+    constructor({ modifier, onClick, content }, parentScope) {
         this.content = content
         this.modifier = modifier
         this.onClick = onClick
@@ -23,25 +22,22 @@ class ButtonComposable {
         if (typeof this.content == "function") {
             if (!Compose.isComposed) {
                 let newScope = new Scope(this.button, this.content).compose()
-                newScope.signature = id
+                newScope.signature = this.getSignature()
                 Compose.scopes.push(newScope)
             } else {
                 let newScope = new Scope(this.root, this.content)
-                newScope.signature = id
+                newScope.signature = this.getSignature()
                 let savedScope = Compose.findScope(newScope.signature)
                 newScope.states = savedScope.states
                 newScope.composables = savedScope.composables
                 newScope.prevChildren = savedScope.prevChildren
                 newScope.recompose()
-
-                Compose.removeScope(newScope.signature)
-                Compose.scopes.push(newScope)
             }
         }
     }
 
-    compose() {
-        return this.connect()
+    getSignature() {
+        return this.content.toString()
     }
 
     connect() {
@@ -57,7 +53,6 @@ class ButtonComposable {
 
     disconnect() {
         this.root.removeEventListener("click", this.onButtonClick)
-        this.root.remove()
     }
 }
 
@@ -67,9 +62,8 @@ function Button({ modifier = Modifier, onClick, content }, scope) {
         console.error("Scope is required: 'Button'")
         return
     }
-    let id = uuid()
-    let composable = new ButtonComposable({ modifier, onClick, content }, scope, id)
-    scope.appendChild(composable, id)
+    let composable = new ButtonComposable({ modifier, onClick, content }, scope)
+    scope.appendChild(composable)
 }
 
 

@@ -49,29 +49,7 @@ const Color = {
 }
 
 
-const JustifyContent = {
-    Start: { justifyContent: "flex-start" },
-    End: { justifyContent: "flex-end" },
-    Center: { justifyContent: "center" },
-    SpaceBetween: { justifyContent: "space-between" },
-    SpaceAround: { justifyContent: "space-around" },
-    SpaceEvenly: { justifyContent: "space-evenly" }
-}
-
-const Align = {
-    End: { alignItems: "flex-end" },
-    Start: { alignItems: "flex-start" },
-    Center: { alignItems: "center" },
-    Baseline: { alignItems: "baseline" },
-    Default: { alignItems: "stretch" },
-    Initial: { alignItems: "initial" },
-    Inherit: { alignItems: "inherit" }
-}
-
-
 export { 
     Overflow,
-    Shape,
-    JustifyContent,
-    Align
+    Shape
 }

@@ -1,5 +1,4 @@
 import { WebComponent } from "../core/WebComponent"
-import { uuid } from "../util/uuid"
 // import { MDCTextField } from '@material/textfield';
 
 
@@ -23,10 +22,6 @@ class TextFieldComposable {
         this.label = this.root.querySelector(".mdc-floating-label")
 
         this.input = this.root.querySelector("input")
-    }
-
-    compose() {
-        return this.connect()
     }
 
     connect() {
@@ -61,6 +56,13 @@ class TextFieldComposable {
                 "opacity": "0.8"
             })
         } 
+        
+        // else {
+        //     WebComponent.applyStyle(this.label, {
+        //         "transform": "translate(0, -20px) scale(0.8)",
+        //         "opacity": "1"
+        //     })
+        // }
     }
 
     onTextChange(e) {
@@ -72,9 +74,9 @@ class TextFieldComposable {
         this.input.removeEventListener("input", this.onTextChange)
         this.input.removeEventListener("focusout", this.onInputFocusOut)
         this.input.removeEventListener("focus", this.onInputFocus)
-        this.root.remove()
     }
 }
+
 
 
 function TextField({ modifier = Modifier, value, onChange, label = "" }, scope) {
@@ -82,9 +84,8 @@ function TextField({ modifier = Modifier, value, onChange, label = "" }, scope) 
         console.error("Scope is required: 'TextField'")
         return
     }
-    let id = uuid()
-    let composable = new TextFieldComposable({ modifier, value, onChange, label }, scope, id)
-    scope.appendChild(composable, id)
+    let composable = new TextFieldComposable({ modifier, value, onChange, label }, scope)
+    scope.appendChild(composable)
 }
 
 

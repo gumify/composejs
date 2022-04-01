@@ -4,12 +4,12 @@ import { Compose } from "../core/Compose"
 import { uuid } from "../util/uuid"
 
 
-class BoxComposable {
+class ColumnComposable {
     constructor({ modifier, content }, parentScope, id) {
         this.modifier = modifier
         this.content = content
         this.root = document.createElement("div")
-        this.root.setAttribute("class", "compose-box compose-layout")
+        this.root.setAttribute("class", "compose-column")
         this.root.setAttribute("data-type", "compose-container")
 
         if (typeof this.content == "function") {
@@ -47,15 +47,15 @@ class BoxComposable {
 
 
 
-function Box({ modifier = Modifier, content }, scope) {
+function Column({ modifier = Modifier, content }, scope) {
     if (!scope) {
-        console.error("Scope is required: 'Box'")
+        console.error("Scope is required: 'Column'")
         return
     }
     let id = uuid()
-    let composable = new BoxComposable({ modifier, content }, scope, id)
+    let composable = new ColumnComposable({ modifier, content }, scope, id)
     scope.appendChild(composable, id)
 }
 
 
-export { Box }
+export { Column }

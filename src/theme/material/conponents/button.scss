@@ -1,0 +1,5 @@
+@use "../../../node_modules/@material/button/styles.scss";
+
+.compose-button {
+    @extend .mdc-button, .mdc-button--raised
+}

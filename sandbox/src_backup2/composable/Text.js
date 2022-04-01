@@ -10,6 +10,7 @@ class TextComposable {
         this.textSize = textSize
         this.overflow = overflow
         this.maxLines = maxLines
+        this.uuid = uuid()
 
         this.root = document.createElement("div")
         this.root.setAttribute("class", "compose-text noselect")
@@ -24,7 +25,7 @@ class TextComposable {
         this.modifier.$init(this.root)
         this.root.textContent = this.text
         if (this.color) this.root.style.color = this.color
-        if (this.textSize) this.root.style.fontSize = isNaN(this.textSize) ? this.textSize : this.textSize + "px"
+        if (this.textSize) this.root.style.fontSize = this.textSize
         if (this.overflow) WebComponent.applyStyle(this.root, this.overflow)
 
         if (this.maxLines) {
@@ -38,7 +39,6 @@ class TextComposable {
     }
 
     disconnect() {
-        this.root.remove()
     }
 }
 
@@ -48,9 +48,8 @@ function Text({ modifier = Modifier, text, color, textSize, overflow = {}, maxLi
         console.error("Scope is required: 'Text'")
         return
     }
-    let id = uuid()
-    let composable = new TextComposable({ modifier, text, color, textSize, overflow, maxLines }, scope, id)
-    scope.appendChild(composable, id)
+    let composable = new TextComposable({ modifier, text, color, textSize, overflow, maxLines }, scope)
+    scope.appendChild(composable)
 }
 
 

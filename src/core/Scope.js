@@ -8,44 +8,36 @@ class Scope {
     constructor(element, composer) {
         this.element = element
         this.composer = composer || null
-        this.children = []
         this.composables = []
-        this.prevChildren = []
-        this.data = null
-        this.isRecomposing = false
         this.focusableEls = ["input", "textarea"]
-        this.states = []
+        this.states = {}
         this.signature = null
     }
 
     stateOf(value) {
-        if (!this.isRecomposing) {
-            let state = new State(value, this)
-            this.states.push(state)
-            return state
+        let id = uuid()
+        if (id in this.states) {
+            return this.states[id]
         }
-        let state = this.states.shift()
-        this.states.push(state)
+        let state = new State(value, this)
+        this.states[id] = state
         return state
     }
 
-    appendChild(child) {
-        this.composables.push(child)
-        this.children.push(child.connect())
+    appendChild(child, id) {
+        this.composables.push({ composable: child, el: child.compose(), id: id })
         return this
     }
 
-    compose(composer, style) {
-        if (style) {
-            let st = document.createElement("style")
-            st.textContent = style.textContent
-            this.element.appendChild(st)
-        }
+    include(composable, ...args) {
+        Box({
+            content: scope => {
+                composable(scope, ...args)
+            }
+        }, this)
+    }
 
-        this.composables.forEach(c => c.disconnect())
-
-        this.children = []
-        this.composables = []
+    compose(composer) {
         this.composer = composer || this.composer
         if (this.composer.constructor.name === "AsyncFunction") {
             this.composeAsync(this.composer)
@@ -54,38 +46,23 @@ class Scope {
             this.composer(this)
         }
         
-        for (let i = 0; i < this.children.length; i++) {
-            if (!this.isRecomposing) {
-                this.children[i].setAttribute("uuid", uuid())
-            } 
-            
-            try {
-                if (this.isRecomposing && this.prevChildren[i].className === this.children[i].className) {
-                    this.children[i].setAttribute("uuid", this.prevChildren[i].getAttribute("uuid"))
-                }
-            } catch(e) {
-                this.children[i].setAttribute("uuid", uuid())
-            }
-
-            this.element.appendChild(this.children[i])
+        for (let i = 0; i < this.composables.length; i++) {
+            this.composables[i].el.setAttribute("uuid", this.composables[i].id)
+            this.element.appendChild(this.composables[i].el)
         }
-        this.isRecomposing = false
-        this.prevChildren = []
-        this.children.forEach(el => this.prevChildren.push(el))
         return this
     }
 
     recompose(composer) {
         /* TODO: add diff so that only required changes can be made to the dom */
-                
-        this.isRecomposing = true
-        let style = this.element.querySelector("style")
         let oldEls = this.getAllChildren(this.element)
         let activeUUID = null
         let selectionStart = null
         for (let el of oldEls) {
             if (document.activeElement === el) {
-                activeUUID = this.getParentElement(el).getAttribute("uuid")
+                let parent = this.getParentElement(el)
+                if (!parent) continue
+                activeUUID = parent.getAttribute("uuid")
                 let oldInput
                 if (this.focusableEls.includes(el.tagName.toLowerCase())) {
                     oldInput = el
@@ -99,9 +76,13 @@ class Scope {
                 }
             }
         }
+
+        this.composables.forEach(c => {
+            c.composable.disconnect()
+        })
+        this.composables = []
         
-        this.element.innerHTML = ''
-        this.compose(composer, style)
+        this.compose(composer)
         
         if (activeUUID) {
             let newEls = this.getAllChildren(this.element)
@@ -149,12 +130,13 @@ class Scope {
     }
 
     getParentElement(element) {
-        if (element.getAttribute("uuid")) {
+        if (element && element.getAttribute("uuid")) {
             return element
         }
-        return this.getParentElement(element.parentElement)
+        if (element.parentElement) {
+            return this.getParentElement(element.parentElement)
+        }
     }
 }
-
 
 export { Scope }

@@ -1,4 +1,3 @@
-import { uuid } from "../util/uuid"
 import { initializeModifier } from "./Modifier"
 import { Scope } from "./Scope"
 
@@ -7,7 +6,6 @@ class Compose {
     constructor(selector) {
         initializeModifier()
         this.app = document.querySelector(selector)
-        this.app.classList.add("compose-box")
         Compose.scopes = []
     }
 
@@ -33,13 +31,18 @@ class Compose {
         }
     }
 
+    getSignature(content) {
+        return content.toString()
+    }
+
     mount(content) {
-        Compose.isComposed = false
         let scope = new Scope(this.app, content)
-        scope.signature = uuid()
-        scope.compose()
-        Compose.scopes.push(scope)
-        Compose.isComposed = true
+        scope.compose(content)
+        // Compose.isComposed = false
+        // let scope = new Scope(this.app, content).compose()
+        // scope.signature = this.getSignature(content)
+        // Compose.scopes.push(scope)
+        // Compose.isComposed = true
     }
 }
 

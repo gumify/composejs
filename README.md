@@ -27,8 +27,8 @@ Parameters:
 Example:
 
 ```js
-let state = scope.stateOf({ value: "hello, world", id: 1 })
-let color = scope.stateOf({ value: "green", id: 2 })
+let state = scope.stateOf("hello, world")
+let color = scope.stateOf("green")
 
 Text({ 
     text: state.value,
@@ -102,3 +102,11 @@ Signature:
 ```
 const Color : Object
 ```
+
+
+
+
+# TODO
+
+* Keep the animation states when recomposing
+
