@@ -1,6 +1,18 @@
+// Button
+@use "../../../node_modules/@material/button/styles.scss";
+
+// TextField
+@use "../../../node_modules/@material/floating-label/mdc-floating-label.scss";
+@use "../../../node_modules/@material/line-ripple/mdc-line-ripple.scss";
+@use "../../../node_modules/@material/notched-outline/mdc-notched-outline.scss";
+@use "../../../node_modules/@material/textfield";
+
+@include textfield.core-styles;
+
+
+@import "./conponents/layouts.scss";
 @import "./conponents/button.scss";
-@import "./conponents/textfield.scss";
-@import "./conponents/layout.scss";
+
 
 body {
     padding: 0;

@@ -8,7 +8,7 @@ class Scope {
     constructor(element, composer) {
         this.element = element
         this.composer = composer || null
-        this.composables = []
+        this.children = []
         this.focusableEls = ["input", "textarea"]
         this.states = {}
         this.signature = null
@@ -24,8 +24,8 @@ class Scope {
         return state
     }
 
-    appendChild(child, id) {
-        this.composables.push({ composable: child, el: child.compose(), id: id })
+    appendChild(child, args, id) {
+        this.children.push({ composable: child, el: child.compose(), id: id, args: args })
         return this
     }
 
@@ -37,6 +37,27 @@ class Scope {
         }, this)
     }
 
+    static runComposer(el, content, id) {
+        if (typeof content == "function") {
+            if (!Compose.isComposed) {
+                let newScope = new Scope(el, content).compose()
+                newScope.signature = id
+                Compose.scopes.push(newScope)
+            } else {
+                let newScope = new Scope(el, content)
+                newScope.signature = id
+                let savedScope = Compose.findScope(newScope.signature)
+                newScope.element = savedScope.element
+                newScope.states = savedScope.states
+                newScope.children = savedScope.children
+                newScope.prevChildren = savedScope.prevChildren
+                newScope.recompose()
+                Compose.removeScope(newScope.signature)
+                Compose.scopes.push(newScope)
+            }
+        }
+    }
+
     compose(composer) {
         this.composer = composer || this.composer
         if (this.composer.constructor.name === "AsyncFunction") {
@@ -46,58 +67,51 @@ class Scope {
             this.composer(this)
         }
         
-        for (let i = 0; i < this.composables.length; i++) {
-            this.composables[i].el.setAttribute("uuid", this.composables[i].id)
-            this.element.appendChild(this.composables[i].el)
+        for (let i = 0; i < this.children.length; i++) {
+            this.element.appendChild(this.children[i].el)
         }
         return this
     }
 
     recompose(composer) {
-        /* TODO: add diff so that only required changes can be made to the dom */
-        let oldEls = this.getAllChildren(this.element)
-        let activeUUID = null
-        let selectionStart = null
-        for (let el of oldEls) {
-            if (document.activeElement === el) {
-                let parent = this.getParentElement(el)
-                if (!parent) continue
-                activeUUID = parent.getAttribute("uuid")
-                let oldInput
-                if (this.focusableEls.includes(el.tagName.toLowerCase())) {
-                    oldInput = el
+        let oldChildren = Array.from(this.children)
+        this.children = []
+        
+        this.composer = composer || this.composer
+        if (this.composer.constructor.name === "AsyncFunction") {
+            this.composeAsync(this.composer)
+            return this
+        } else if (this.composer.constructor.name === "Function") {
+            this.composer(this)
+        }
+
+        let lastElement = null
+        for (let i = 0; i < this.children.length; i++) {
+            let child = this.children[i]
+            let oldChild = oldChildren.find(c => c.id === child.id)
+
+            if (oldChild) {
+                oldChild.composable.recompose(child.args)
+                this.children[i] = oldChild
+                lastElement = oldChild.el
+            } else {
+                if (lastElement) {
+                    lastElement.parentNode.insertBefore(child.el, lastElement.nextSibling)
                 } else {
-                    oldInput = el.querySelector("input,textarea")
+                    this.element.appendChild(child.el)
                 }
-                try {
-                    selectionStart = oldInput.selectionStart
-                } catch(e) {
-                    activeUUID = null
-                }
+                lastElement = child.el
             }
         }
 
-        this.composables.forEach(c => {
-            c.composable.disconnect()
-        })
-        this.composables = []
-        
-        this.compose(composer)
-        
-        if (activeUUID) {
-            let newEls = this.getAllChildren(this.element)
-            for (let el of newEls) {
-                if (el.getAttribute("uuid") === activeUUID) {
-                    let newInput
-                    if (this.focusableEls.includes(el.tagName.toLowerCase())) {
-                        newInput = el
-                    } else {
-                        newInput = el.querySelector("input,textarea")
-                    }
-                    this.setCaretPosition(newInput, selectionStart)
-                }
+        if (oldChildren.length > this.children.length) {
+            let diff = oldChildren.filter(c => !this.children.find(c2 => c2.id === c.id))
+            for (let c of diff) {
+                c.composable.disconnect()
+                this.element.removeChild(c.el)
             }
         }
+        
         return this
     }
 

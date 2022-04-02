@@ -2,6 +2,7 @@ import { WebComponent } from "../core/WebComponent"
 import { Scope } from "../core/Scope"
 import { Compose } from "../core/Compose"
 import { uuid } from "../util/uuid"
+import { Stack } from "../core/Stack"
 
 
 class BoxComposable {
@@ -11,37 +12,38 @@ class BoxComposable {
         this.root = document.createElement("div")
         this.root.setAttribute("class", "compose-box compose-layout")
         this.root.setAttribute("data-type", "compose-container")
+        this.root.setAttribute("uuid", id)
+        this.args = arguments[0]
+        this.id = id
 
-        if (typeof this.content == "function") {
-            if (!Compose.isComposed) {
-                let newScope = new Scope(this.root, this.content).compose()
-                newScope.signature = id
-                Compose.scopes.push(newScope)
-            } else {
-                let newScope = new Scope(this.root, this.content)
-                newScope.signature = id
-                let savedScope = Compose.findScope(newScope.signature)
-                newScope.states = savedScope.states
-                newScope.composables = savedScope.composables
-                newScope.prevChildren = savedScope.prevChildren
-                newScope.recompose()
-                Compose.removeScope(newScope.signature)
-                Compose.scopes.push(newScope)
-            }
-        }
+        Scope.runComposer(this.root, this.content, id)
     }
 
     compose() {
         return this.connect()
     }
 
+    recompose(args) {
+        if (args.modifier) {
+            args.modifier.$init(this.root)
+            if (this.id in Stack.modifiers) {
+                Stack.modifiers[this.id].$destroy(this.root)
+                delete Stack.modifiers[this.id]
+            }
+            Stack.modifiers[this.id] = args.modifier
+        }
+    }
+
     connect() {
-        this.modifier.$init(this.root)
+        this.recompose(this.args)
         return this.root
     }
 
     disconnect() {
-        this.root.remove()
+        if (this.id in Stack.modifiers) {
+            Stack.modifiers[this.id].$destroy(this.root)
+            delete Stack.modifiers[this.id]
+        }
     }
 }
 
@@ -54,7 +56,7 @@ function Box({ modifier = Modifier, content }, scope) {
     }
     let id = uuid()
     let composable = new BoxComposable({ modifier, content }, scope, id)
-    scope.appendChild(composable, id)
+    scope.appendChild(composable, arguments[0], id)
 }
 
 

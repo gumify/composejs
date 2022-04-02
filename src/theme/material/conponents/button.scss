@@ -1,5 +1,8 @@
-@use "../../../node_modules/@material/button/styles.scss";
-
-.compose-button {
-    @extend .mdc-button, .mdc-button--raised
+.compose-button, .compose-outlined-button, .compose-text-button {
+    .mdc-button__label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+    }
 }

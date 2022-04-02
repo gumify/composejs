@@ -14,9 +14,21 @@ class Modifier {
         this.$applyTo(this.element, this.css)
     }
 
+    $destroy(element) {
+        for (let key in this.css) {
+            if (key === "clickable") {
+                element.removeEventListener("click", this.css[key])
+            }
+        }
+    }
+
     $applyTo(element, style) {
         for (let key in style) {
-            element.style[key] = style[key]
+            if (key === "clickable") {
+                element.addEventListener("click", style[key])
+            } else {
+                element.style[key] = style[key]
+            }
         }
     }
 
@@ -47,10 +59,7 @@ class Modifier {
 
         if (padding.bottom) this.css["padding-bottom"] = isNaN(padding.bottom) ? padding.bottom : padding.bottom + "px"
        
-        if (padding.start) {
-            console.log(padding.start)
-            this.css["padding-left"] = isNaN(padding.start) ? padding.start : padding.start + "px"
-        }
+        if (padding.start) this.css["padding-left"] = isNaN(padding.start) ? padding.start : padding.start + "px"
         else if (padding.left) this.css["padding-left"] = isNaN(padding.left) ? padding.left : padding.left + "px"
         
         if (padding !== "") {
@@ -132,7 +141,7 @@ class Modifier {
     }
 
     basis(value) {
-        this.value.flexBasis = value
+        this.css.flexBasis = value
         return this
     }
 
@@ -140,6 +149,12 @@ class Modifier {
         for (let key in value) {
             this.css[key] = value[key]
         }
+        return this
+    }
+
+    clickable(callback) {
+        this.css.cursor = "pointer"
+        this.css.clickable = callback
         return this
     }
 }

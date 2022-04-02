@@ -7,16 +7,52 @@ import { TextField } from "../src/composable/TextField"
 import { Spacer } from "../src/composable/Spacer"
 import { Column } from "../src/composable/Column"
 import { Align } from "../src/core/constants"
+import { OutlinedButton } from "../src/composable/OutlinedButton"
+import { TextButton } from "../src/composable/TextButton"
+import { HtmlView } from "../src/composable/HtmlView"
 
 const App = scope => {
-    Box({
+    let text = scope.stateOf("hello")
+    let isDisabled = scope.stateOf(false)
+
+    Column({
+        modifier: Modifier.padding(10),
         content: scope => {
-            Text({ text: "hello" }, scope)
-        }
-    }, scope)
-    Box({
-        content: scope => {
-            Text({ text: "hello" }, scope)
+            TextField({
+                value: text.value,
+                disabled: isDisabled.value,
+                label: "Message",
+                onChange: (value, e) => {
+                    text.value = value
+                }
+            }, scope)
+
+            HtmlView({
+                modifier: Modifier.background("#333").padding({start: 20, end: 20}),
+                factory: () => {
+                    let el = document.createElement("div")
+                    el.innerHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/987Hc6fxXJ4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+                    return el
+                },
+                update: el => {
+                }
+            }, scope)
+
+            Text({ 
+                text: text.value,
+                modifier: Modifier.clickable(e => {
+                    alert(text.value)
+                })
+            }, scope)
+
+            TextButton({
+                content: scope => {
+                    Text({ text: "Button" }, scope)
+                },
+                onClick: e => {
+                    isDisabled.value = !isDisabled.value
+                }
+            }, scope)
         }
     }, scope)
 }

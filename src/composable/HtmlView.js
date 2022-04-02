@@ -1,20 +1,24 @@
 import { WebComponent } from "../core/WebComponent"
+import { Scope } from "../core/Scope"
+import { Compose } from "../core/Compose"
 import { uuid } from "../util/uuid"
 import { Stack } from "../core/Stack"
 
 
-class SpacerComposable {
-    constructor({ modifier, height, width }, scope, id) {
+class HtmlViewComposable {
+    constructor({ modifier, factory, update }, parentScope, id) {
         this.modifier = modifier
-        this.height = height
-        this.width = width
+        this.factory = factory
+        this.update = update
         this.args = arguments[0]
         this.id = id
-
+        
         this.root = document.createElement("div")
-        this.root.setAttribute("class", "compose-spacer noselect")
+        this.root.setAttribute("class", "compose-html compose-layout")
         this.root.setAttribute("data-type", "compose-container")
         this.root.setAttribute("uuid", id)
+
+        this.root.appendChild(this.factory())
     }
 
     compose() {
@@ -22,8 +26,6 @@ class SpacerComposable {
     }
 
     recompose(args) {
-        if (args.height) this.root.style.height = isNaN(args.height) ? args.height : args.height + "px"
-        if (args.width) this.root.style.width = isNaN(args.width) ? args.width : args.width + "px"
         if (args.modifier) {
             args.modifier.$init(this.root)
             if (this.id in Stack.modifiers) {
@@ -32,6 +34,7 @@ class SpacerComposable {
             }
             Stack.modifiers[this.id] = args.modifier
         }
+        args.update(this.root.children[0])
     }
 
     connect() {
@@ -48,15 +51,16 @@ class SpacerComposable {
 }
 
 
-function Spacer({ modifier = Modifier, height, width }, scope) {
+
+function HtmlView({ modifier = Modifier, factory, update }, scope) {
     if (!scope) {
-        console.error("Scope is required: 'Spacer'")
+        console.error("Scope is required: 'HtmlView'")
         return
     }
     let id = uuid()
-    let composable = new SpacerComposable({ modifier, height, width }, scope, id)
+    let composable = new HtmlViewComposable({ modifier, factory, update }, scope, id)
     scope.appendChild(composable, arguments[0], id)
 }
 
 
-export { Spacer }
+export { HtmlView }

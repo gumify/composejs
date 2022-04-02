@@ -1,5 +1,5 @@
 const Stack = {
-    
+    modifiers: {}
 }
 
 

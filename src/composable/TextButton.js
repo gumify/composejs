@@ -6,7 +6,7 @@ import {MDCRipple} from '@material/ripple'
 import { Stack } from "../core/Stack"
 
 
-class ButtonComposable {
+class TextButtonComposable {
     constructor({ modifier, onClick, content, disabled }, parentScope, id) {
         this.content = content
         this.modifier = modifier
@@ -18,7 +18,7 @@ class ButtonComposable {
         <span class="mdc-button__label"></span>
         `
         this.ripple = new MDCRipple(this.root)
-        this.root.setAttribute("class", "compose-button mdc-button mdc-button--raised")
+        this.root.setAttribute("class", "compose-text-button mdc-button")
         this.root.setAttribute("data-type", "compose-container")
         this.root.setAttribute("uuid", id)
         this.button = this.root.querySelector(".mdc-button__label")
@@ -46,7 +46,7 @@ class ButtonComposable {
 
     connect() {
         this.recompose(this.args)
-
+        
         this.root.addEventListener("click", this.onButtonClick.bind(this))
         this.root.addEventListener("mouseup", this.onMouseUp.bind(this))
         return this.root
@@ -74,16 +74,16 @@ class ButtonComposable {
 }
 
 
-function Button({ modifier = Modifier, onClick, content, disabled = false }, scope) {
+function TextButton({ modifier = Modifier, onClick, content, disabled = false }, scope) {
     if (!scope) {
-        console.error("Scope is required: 'Button'")
+        console.error("Scope is required: 'TextButton'")
         return
     }
     let id = uuid()
-    let composable = new ButtonComposable({ modifier, onClick, content, disabled }, scope, id)
+    let composable = new TextButtonComposable({ modifier, onClick, content, disabled }, scope, id)
     scope.appendChild(composable, arguments[0], id)
 }
 
 
 
-export { Button }
+export { TextButton }

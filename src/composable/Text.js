@@ -1,44 +1,62 @@
+import { Stack } from "../core/Stack"
 import { WebComponent } from "../core/WebComponent"
 import { uuid } from "../util/uuid"
 
 
 class TextComposable {
-    constructor({ modifier, text, color, textSize, overflow, maxLines }, scope) {
+    constructor({ modifier, text, color, textSize, overflow, maxLines }, scope, id) {
         this.text = text
         this.modifier = modifier
         this.color = color
         this.textSize = textSize
         this.overflow = overflow
         this.maxLines = maxLines
+        this.args = arguments[0]
+        this.id = id
 
         this.root = document.createElement("div")
         this.root.setAttribute("class", "compose-text noselect")
         this.root.setAttribute("data-type", "compose-container")
+        this.root.setAttribute("uuid", id)
     }
 
     compose() {
         return this.connect()
     }
 
-    connect() {
-        this.modifier.$init(this.root)
-        this.root.textContent = this.text
-        if (this.color) this.root.style.color = this.color
-        if (this.textSize) this.root.style.fontSize = isNaN(this.textSize) ? this.textSize : this.textSize + "px"
-        if (this.overflow) WebComponent.applyStyle(this.root, this.overflow)
-
-        if (this.maxLines) {
+    recompose(args) {
+        this.root.innerHTML = args.text
+        
+        if (args.color) this.root.style.color = args.color
+        if (args.textSize) this.root.style.fontSize = isNaN(args.textSize) ? args.textSize : args.textSize + "px"
+        if (args.overflow) WebComponent.applyStyle(this.root, args.overflow)
+        if (args.maxLines) {
             WebComponent.applyStyle(this.root, {
-                "-webkit-line-clamp": this.maxLines,
+                "-webkit-line-clamp": args.maxLines,
                 "display": "-webkit-box",
                 "-webkit-box-orient": "vertical"
             })
         }
+        if (args.modifier) {
+            args.modifier.$init(this.root)
+            if (this.id in Stack.modifiers) {
+                Stack.modifiers[this.id].$destroy(this.root)
+                delete Stack.modifiers[this.id]
+            }
+            Stack.modifiers[this.id] = args.modifier
+        }
+    }
+
+    connect() {
+        this.recompose(this.args)
         return this.root
     }
 
     disconnect() {
-        this.root.remove()
+        if (this.id in Stack.modifiers) {
+            Stack.modifiers[this.id].$destroy(this.root)
+            delete Stack.modifiers[this.id]
+        }
     }
 }
 
@@ -50,7 +68,7 @@ function Text({ modifier = Modifier, text, color, textSize, overflow = {}, maxLi
     }
     let id = uuid()
     let composable = new TextComposable({ modifier, text, color, textSize, overflow, maxLines }, scope, id)
-    scope.appendChild(composable, id)
+    scope.appendChild(composable, arguments[0], id)
 }
 
 

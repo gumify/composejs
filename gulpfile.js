@@ -32,7 +32,7 @@ gulp.task("compile", function() {
     .pipe(buffer())
     .pipe(maps.init())
     .pipe(rename("compose.min.js"))
-    // .pipe(uglify())
+    .pipe(uglify())
     .pipe(maps.write(".maps"))
     
     for (let dest of dirs.dests) {
