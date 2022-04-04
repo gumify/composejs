@@ -1,9 +1,8 @@
-import { WebComponent } from "../core/WebComponent"
 import { Scope } from "../core/Scope"
-import { Compose } from "../core/Compose"
 import { uuid } from "../util/uuid"
 import {MDCRipple} from '@material/ripple'
 import { Stack } from "../core/Stack"
+import { initModifier, destroyModifier } from "../util/helper"
 
 
 class OutlinedButtonComposable {
@@ -33,15 +32,10 @@ class OutlinedButtonComposable {
     }
 
     recompose(args) {
-        if (args.modifier) {
-            args.modifier.$init(this.root)
-            if (this.id in Stack.modifiers) {
-                Stack.modifiers[this.id].$destroy(this.root)
-                delete Stack.modifiers[this.id]
-            }
-            Stack.modifiers[this.id] = args.modifier
+        initModifier(this.id, this.root, args.modifier)
+        if (this.root.disabled !== args.disabled) {
+            this.root.disabled = args.disabled
         }
-        this.root.disabled = args.disabled
     }
 
     connect() {
@@ -66,10 +60,7 @@ class OutlinedButtonComposable {
     disconnect() {
         this.root.removeEventListener("click", this.onButtonClick)
         this.root.removeEventListener("mouseup", this.onMouseUp)
-        if (this.id in Stack.modifiers) {
-            Stack.modifiers[this.id].$destroy(this.root)
-            delete Stack.modifiers[this.id]
-        }
+        destroyModifier(this.id, this.root)
     }
 }
 

@@ -1,6 +1,6 @@
-import { Stack } from "../core/Stack"
 import { WebComponent } from "../core/WebComponent"
 import { uuid } from "../util/uuid"
+import { initModifier, destroyModifier } from "../util/helper"
 
 
 class TextComposable {
@@ -37,14 +37,8 @@ class TextComposable {
                 "-webkit-box-orient": "vertical"
             })
         }
-        if (args.modifier) {
-            args.modifier.$init(this.root)
-            if (this.id in Stack.modifiers) {
-                Stack.modifiers[this.id].$destroy(this.root)
-                delete Stack.modifiers[this.id]
-            }
-            Stack.modifiers[this.id] = args.modifier
-        }
+
+        initModifier(this.id, this.root, args.modifier)
     }
 
     connect() {
@@ -53,10 +47,7 @@ class TextComposable {
     }
 
     disconnect() {
-        if (this.id in Stack.modifiers) {
-            Stack.modifiers[this.id].$destroy(this.root)
-            delete Stack.modifiers[this.id]
-        }
+        destroyModifier(this.id, this.root)
     }
 }
 

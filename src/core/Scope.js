@@ -1,6 +1,7 @@
 import { Box } from "../composable/Box";
 import { uuid } from "../util/uuid";
 import { Compose } from "./Compose";
+import { Stack } from "./Stack";
 import { State } from "./State"
 
 
@@ -12,6 +13,8 @@ class Scope {
         this.focusableEls = ["input", "textarea"]
         this.states = {}
         this.signature = null
+        this.recomposeEnabled = true
+        this.isRecomposing = false
     }
 
     stateOf(value) {
@@ -59,6 +62,7 @@ class Scope {
     }
 
     compose(composer) {
+        this.recomposeEnabled = false
         this.composer = composer || this.composer
         if (this.composer.constructor.name === "AsyncFunction") {
             this.composeAsync(this.composer)
@@ -70,10 +74,20 @@ class Scope {
         for (let i = 0; i < this.children.length; i++) {
             this.element.appendChild(this.children[i].el)
         }
+        this.recomposeEnabled = true
         return this
     }
 
+    executePendingRecompose() {
+        if (Stack.pendingRecomposition.length > 0) {
+            let pending = Stack.pendingRecomposition.shift()
+            pending.scope.recompose()
+        }
+    }
+
     recompose(composer) {
+        if (!this.recomposeEnabled) return
+        this.isRecomposing = true
         let oldChildren = Array.from(this.children)
         this.children = []
         
@@ -88,10 +102,19 @@ class Scope {
         let lastElement = null
         for (let i = 0; i < this.children.length; i++) {
             let child = this.children[i]
-            let oldChild = oldChildren.find(c => c.id === child.id)
 
+            for (let oldc of oldChildren) {
+                let exist = this.children.find(c => c.id === oldc.id)
+                console.log("exist:", exist)
+                if (!exist) {
+                    oldc.composable.disconnect()
+                    oldc.el.remove()
+                    oldChildren.splice(oldChildren.indexOf(oldc), 1)
+                }
+            }
+            let oldChild = oldChildren.find(c => c.id === child.id)
             if (oldChild) {
-                oldChild.composable.recompose(child.args)
+                oldChild.composable.recompose(child.args, oldChild.el)
                 this.children[i] = oldChild
                 lastElement = oldChild.el
             } else {
@@ -108,10 +131,11 @@ class Scope {
             let diff = oldChildren.filter(c => !this.children.find(c2 => c2.id === c.id))
             for (let c of diff) {
                 c.composable.disconnect()
-                this.element.removeChild(c.el)
+                c.el.remove()
             }
         }
-        
+        this.isRecomposing = false
+        this.executePendingRecompose()
         return this
     }
 

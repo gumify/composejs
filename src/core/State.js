@@ -1,5 +1,5 @@
 import { Compose } from "./Compose"
-import { Scope } from "./Scope"
+import { Stack } from "./Stack"
 
 class State {
     constructor(value, scope) {
@@ -10,7 +10,13 @@ class State {
     set value(value) {
         if (value !== this.value) {
             this.stateValue = value
-            this.scope.recompose()
+            if (this.scope.recomposeEnabled) {
+                if (!this.scope.isRecomposing) {
+                    this.scope.recompose()
+                } else {
+                    Stack.pendingRecomposition.push(this.scope)
+                }
+            }
         }
     }
 

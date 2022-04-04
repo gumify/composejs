@@ -1,3 +1,5 @@
+@use "./type.scss";
+
 // Button
 @use "../../../node_modules/@material/button/styles.scss";
 
@@ -7,11 +9,13 @@
 @use "../../../node_modules/@material/notched-outline/mdc-notched-outline.scss";
 @use "../../../node_modules/@material/textfield";
 
-@include textfield.core-styles;
-
 
 @import "./conponents/layouts.scss";
 @import "./conponents/button.scss";
+
+
+@include textfield.core-styles;
+// @include icon-button.core-styles;
 
 
 body {

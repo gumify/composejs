@@ -1,10 +1,8 @@
-import { State } from "./State"
-
-
 class Modifier {
     constructor() {
         this.element = null
         this.css = {}
+        this.clickables = []
     }
 
     $init(element) {
@@ -15,9 +13,9 @@ class Modifier {
     }
 
     $destroy(element) {
-        for (let key in this.css) {
-            if (key === "clickable") {
-                element.removeEventListener("click", this.css[key])
+        for (let key in this.clickables) {
+            if (this.clickables[key].element === element) {
+                element.removeEventListener("click", this.clickables[key].callback)
             }
         }
     }
@@ -25,7 +23,11 @@ class Modifier {
     $applyTo(element, style) {
         for (let key in style) {
             if (key === "clickable") {
-                element.addEventListener("click", style[key])
+                let callback = e => {
+                    style[key](e)
+                }
+                element.addEventListener("click", callback)
+                this.clickables.push({ element, callback })
             } else {
                 element.style[key] = style[key]
             }
@@ -38,7 +40,7 @@ class Modifier {
     }
 
     size(height, width) {
-        if (!width) {
+        if (width === undefined) {
             let v = isNaN(height) ? height : height + "px"
             this.css["height"] = v
             this.css["width"] = v
@@ -50,19 +52,19 @@ class Modifier {
     }
 
     padding(padding) {
-        if (padding.top) this.css["padding-top"] = isNaN(padding.top) ? padding.top : padding.top + "px"
+        if (padding.top !== undefined) this.css["padding-top"] = isNaN(padding.top) ? padding.top : padding.top + "px"
         
-        if (padding.end) {
+        if (padding.end !== undefined) {
             this.css["padding-right"] = isNaN(padding.end) ? padding.end : padding.end + "px"
         }
-        else if (padding.right) this.css["padding-right"] = isNaN(padding.right) ? padding.right : padding.right + "px"
+        else if (padding.right !== undefined) this.css["padding-right"] = isNaN(padding.right) ? padding.right : padding.right + "px"
 
-        if (padding.bottom) this.css["padding-bottom"] = isNaN(padding.bottom) ? padding.bottom : padding.bottom + "px"
+        if (padding.bottom !== undefined) this.css["padding-bottom"] = isNaN(padding.bottom) ? padding.bottom : padding.bottom + "px"
        
-        if (padding.start) this.css["padding-left"] = isNaN(padding.start) ? padding.start : padding.start + "px"
-        else if (padding.left) this.css["padding-left"] = isNaN(padding.left) ? padding.left : padding.left + "px"
+        if (padding.start !== undefined) this.css["padding-left"] = isNaN(padding.start) ? padding.start : padding.start + "px"
+        else if (padding.left !== undefined) this.css["padding-left"] = isNaN(padding.left) ? padding.left : padding.left + "px"
         
-        if (padding !== "") {
+        if (padding !== "" && padding  !== undefined) {
             this.css["padding"] = isNaN(padding) ? padding : padding + "px"
         }
         return this
@@ -157,6 +159,11 @@ class Modifier {
         this.css.clickable = callback
         return this
     }
+
+    // textSize(value) {
+    //     this.css.fontSize = isNaN(value) ? value : value + "px"
+    //     return this
+    // }
 }
 
 

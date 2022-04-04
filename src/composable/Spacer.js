@@ -1,6 +1,6 @@
-import { WebComponent } from "../core/WebComponent"
 import { uuid } from "../util/uuid"
 import { Stack } from "../core/Stack"
+import { initModifier, destroyModifier } from "../util/helper"
 
 
 class SpacerComposable {
@@ -24,14 +24,7 @@ class SpacerComposable {
     recompose(args) {
         if (args.height) this.root.style.height = isNaN(args.height) ? args.height : args.height + "px"
         if (args.width) this.root.style.width = isNaN(args.width) ? args.width : args.width + "px"
-        if (args.modifier) {
-            args.modifier.$init(this.root)
-            if (this.id in Stack.modifiers) {
-                Stack.modifiers[this.id].$destroy(this.root)
-                delete Stack.modifiers[this.id]
-            }
-            Stack.modifiers[this.id] = args.modifier
-        }
+        initModifier(this.id, this.root, args.modifier)
     }
 
     connect() {
@@ -40,10 +33,7 @@ class SpacerComposable {
     }
 
     disconnect() {
-        if (this.id in Stack.modifiers) {
-            Stack.modifiers[this.id].$destroy(this.root)
-            delete Stack.modifiers[this.id]
-        }
+        destroyModifier(this.id, this.root)
     }
 }
 

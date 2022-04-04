@@ -1,8 +1,7 @@
-import { WebComponent } from "../core/WebComponent"
 import { Scope } from "../core/Scope"
-import { Compose } from "../core/Compose"
 import { uuid } from "../util/uuid"
 import { Stack } from "../core/Stack"
+import { initModifier, destroyModifier } from "../util/helper"
 
 
 class BoxComposable {
@@ -24,14 +23,7 @@ class BoxComposable {
     }
 
     recompose(args) {
-        if (args.modifier) {
-            args.modifier.$init(this.root)
-            if (this.id in Stack.modifiers) {
-                Stack.modifiers[this.id].$destroy(this.root)
-                delete Stack.modifiers[this.id]
-            }
-            Stack.modifiers[this.id] = args.modifier
-        }
+        initModifier(this.id, this.root, args.modifier)
     }
 
     connect() {
@@ -40,10 +32,7 @@ class BoxComposable {
     }
 
     disconnect() {
-        if (this.id in Stack.modifiers) {
-            Stack.modifiers[this.id].$destroy(this.root)
-            delete Stack.modifiers[this.id]
-        }
+        destroyModifier(this.id, this.root)
     }
 }
 

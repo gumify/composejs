@@ -1,20 +1,17 @@
-import { Scope } from "../core/Scope"
 import { uuid } from "../util/uuid"
 import { initModifier, destroyModifier } from "../util/helper"
 
 
-class ColumnComposable {
-    constructor({ modifier, content }, parentScope, id) {
+class IconComposable {
+    constructor({ modifier, icon }, parentScope, id) {
         this.modifier = modifier
-        this.content = content
+        this.icon = icon
         this.root = document.createElement("div")
-        this.root.setAttribute("class", "compose-column")
+        this.root.setAttribute("class", "compose-icon material-icons")
         this.root.setAttribute("data-type", "compose-container")
         this.root.setAttribute("uuid", id)
         this.args = arguments[0]
         this.id = id
-
-        Scope.runComposer(this.root, this.content, id)
     }
 
     compose() {
@@ -22,6 +19,9 @@ class ColumnComposable {
     }
 
     recompose(args) {
+        if (this.root.textContent !== args.icon) {
+            this.root.innerHTML = args.icon
+        }
         initModifier(this.id, this.root, args.modifier)
     }
 
@@ -36,16 +36,15 @@ class ColumnComposable {
 }
 
 
-
-function Column({ modifier = Modifier, content }, scope) {
+function Icon({ modifier = Modifier, icon }, scope) {
     if (!scope) {
-        console.error("Scope is required: 'Column'")
+        console.error("Scope is required: 'Icon'")
         return
     }
     let id = uuid()
-    let composable = new ColumnComposable({ modifier, content }, scope, id)
+    let composable = new IconComposable({ modifier, icon }, scope, id)
     scope.appendChild(composable, arguments[0], id)
 }
 
 
-export { Column }
+export { Icon }

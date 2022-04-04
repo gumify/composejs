@@ -1,6 +1,6 @@
-import { WebComponent } from "../core/WebComponent"
 import { uuid } from "../util/uuid"
 import { MDCTextField } from '@material/textfield';
+import { initModifier, destroyModifier } from "../util/helper"
 
 
 class TextFieldComposable {
@@ -41,7 +41,7 @@ class TextFieldComposable {
         this.inputEl.disabled = args.disabled
         this.labelEl.textContent = this.label
         this.inputEl.value = args.value
-        if (args.modifier) args.modifier.$init(this.root)
+        initModifier(this.id, this.root, args.modifier)
     }
 
     connect() {
@@ -54,11 +54,11 @@ class TextFieldComposable {
 
     onTextChange(e) {
         this.onChange(this.inputEl.value, e)
-        // this.scope.recompose()
+        this.scope.recompose()
     }
 
     disconnect() {
-        if (this.modifier) this.modifier.$destroy(this.root)
+        destroyModifier(this.id, this.root)
         this.inputEl.removeEventListener("input", this.onTextChange)
     }
 }

@@ -1,5 +1,7 @@
 const Stack = {
-    modifiers: {}
+    modifiers: {},
+    launchers: {},
+    pendingRecomposition: [],
 }
 
 

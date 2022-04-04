@@ -3,12 +3,12 @@ import { uuid } from "../util/uuid"
 import { initModifier, destroyModifier } from "../util/helper"
 
 
-class ColumnComposable {
+class RowComposable {
     constructor({ modifier, content }, parentScope, id) {
         this.modifier = modifier
         this.content = content
         this.root = document.createElement("div")
-        this.root.setAttribute("class", "compose-column")
+        this.root.setAttribute("class", "compose-row")
         this.root.setAttribute("data-type", "compose-container")
         this.root.setAttribute("uuid", id)
         this.args = arguments[0]
@@ -37,15 +37,15 @@ class ColumnComposable {
 
 
 
-function Column({ modifier = Modifier, content }, scope) {
+function Row({ modifier = Modifier, content }, scope) {
     if (!scope) {
-        console.error("Scope is required: 'Column'")
+        console.error("Scope is required: 'Row'")
         return
     }
     let id = uuid()
-    let composable = new ColumnComposable({ modifier, content }, scope, id)
+    let composable = new RowComposable({ modifier, content }, scope, id)
     scope.appendChild(composable, arguments[0], id)
 }
 
 
-export { Column }
+export { Row }
